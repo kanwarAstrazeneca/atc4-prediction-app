@@ -23,18 +23,18 @@ def predict_atc4(model, label_encoder, input_dict):
 @st.cache_data
 def load_reference_data():
     df = pd.read_csv("merged_filtered_top100_atcs.csv")
-    return df.head(1000)  # Adjust as needed
+    return df.head(1000)  # Adjust number of rows to load as needed
 
 # --- Page Configuration ---
 st.set_page_config(page_title="ATC4 Recode Prediction App", layout="wide")
 st.title("🔮 ATC4 Recode Prediction App")
 
-# --- Session State Init ---
+# --- Initialize session state for inputs ---
 for field in ["product", "corporation", "molecules", "atc4"]:
     if field not in st.session_state:
         st.session_state[field] = ""
 
-# --- Paste Box for Copied Row ---
+# --- Paste Box for copied row (optional) ---
 pasted_row = st.text_input("📋 Paste copied row here (optional)", key="pasted_row")
 
 if pasted_row:
@@ -45,14 +45,14 @@ if pasted_row:
         st.session_state.molecules = parts[2]
         st.session_state.atc4 = parts[3]
 
-# --- Input Form ---
+# --- Input fields ---
 col1, col2, col3, col4 = st.columns(4)
 product = col1.text_input("Product", key="product")
 corporation = col2.text_input("Corporation", key="corporation")
 molecules = col3.text_input("Molecules", key="molecules")
 atc4 = col4.text_input("ATC4", key="atc4")
 
-# --- Predict Button ---
+# --- Predict button ---
 if st.button("🎯 Predict ATC4 Recode"):
     if all([product, corporation, molecules, atc4]):
         try:
@@ -70,15 +70,16 @@ if st.button("🎯 Predict ATC4 Recode"):
     else:
         st.warning("Please fill in all 4 fields.")
 
-# --- Divider ---
 st.markdown("---")
 st.subheader("📘 Reference Table: Top 100 ATC4 Classes")
 
-# --- Load and Modify Reference Data ---
+# --- Load reference data ---
 df = load_reference_data()
+
+# Add a dummy 'Copy' column for the copy button renderer
 df.insert(0, 'Copy', "")
 
-# --- JS Copy Code for Entire Row ---
+# --- JavaScript for Copy Button (copies product, corporation, molecules, atc4 columns as tab-separated) ---
 copy_js = JsCode("""
 class CopyRowRenderer {
     init(params) {
@@ -87,7 +88,7 @@ class CopyRowRenderer {
         this.eGui = document.createElement('button');
         this.eGui.innerHTML = '📋';
         this.eGui.style.cursor = 'pointer';
-        this.eGui.title = 'Copy row to input';
+        this.eGui.title = 'Copy entire row to input fields';
         this.eGui.addEventListener('click', () => {
             navigator.clipboard.writeText(value).then(() => {
                 this.eGui.innerHTML = '✅';
@@ -101,16 +102,18 @@ class CopyRowRenderer {
 }
 """)
 
-# --- AG Grid Settings ---
+# --- Configure AG Grid ---
 gb = GridOptionsBuilder.from_dataframe(df)
-gb.configure_column("Copy", cellRenderer=copy_js, width=70)
+gb.configure_column("Copy", cellRenderer=copy_js, width=70, pinned='left', suppressSizeToFit=True)
 gb.configure_pagination(paginationAutoPageSize=True)
 gb.configure_default_column(groupable=True, filter=True, editable=False)
 
+# Show AgGrid
 AgGrid(
     df,
     gridOptions=gb.build(),
     allow_unsafe_jscode=True,
     fit_columns_on_grid_load=True,
-    height=500
+    height=500,
+    enable_enterprise_modules=False,
 )
