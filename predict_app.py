@@ -23,7 +23,7 @@ def predict_atc4(model, label_encoder, input_dict):
 @st.cache_data
 def load_reference_data():
     df = pd.read_csv("merged_filtered_top100_atcs.csv")
-    return df.head(1000)  # Adjust number of rows to load as needed
+    return df.head(179482)  # Adjust number of rows to load as needed
 
 # --- Page Configuration ---
 st.set_page_config(page_title="ATC4 Recode Prediction App", layout="wide")
@@ -92,7 +92,7 @@ class CopyRowRenderer {
         this.eGui.addEventListener('click', () => {
             navigator.clipboard.writeText(value).then(() => {
                 this.eGui.innerHTML = '✅';
-                setTimeout(() => { this.eGui.innerHTML = '📋'; }, 1000);
+                setTimeout(() => { this.eGui.innerHTML = '📋'; }, 179482);
             });
         });
     }
